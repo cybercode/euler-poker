@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require_relative File.join(__dir__, '..', 'lib', 'poker')
+
+total, won = Poker.new(ARGV[0]).play
+
+$stdout.puts "#{total} rounds, #{won} won"

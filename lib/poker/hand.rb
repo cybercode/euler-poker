@@ -1,4 +1,4 @@
-class Hand
+class Poker::Hand
   FACE_VALUES = '23456789TJQKA'.freeze
   STRAIGHT = 'straight'.freeze
   FLUSH = 'flush'.freeze
@@ -25,12 +25,21 @@ class Hand
 
     # Array of [[rank, suit], ...]
     tmp = cards.map { |c| c.split('') }
+    values = tmp.map { |v, _| FACE_VALUES.index(v) }
 
-    @values = tmp.map { |v, _| FACE_VALUES.index(v) }.sort.reverse
+    # all same suit
     @flush = tmp.map(&:last).uniq.length == 1
-    @hand = values.uniq.map { |c| values.count(c) }.sort.reverse
 
-    Debug.call("cards #{@values} #{@flush}", "hand #{@hand}")
+    # 5 different cards in order
+    @straight = values.uniq.length == 5 && values.max - values.min == 4
+
+    # tuple of card counts. sorted by [count, face_value]
+    @hand = values.uniq.map { |v| [values.count(v), v] }.sort.reverse.tap do |a|
+      # matching card values
+      @values = a.map(&:last)
+    end.map(&:first)
+
+    Debug.call("cards #{@values} #{@flush}, hand #{@hand}")
   end
 
   def <=>(other)
@@ -55,7 +64,7 @@ class Hand
   end
 
   def rank_by_cards(other)
-    values.zip(other.values).each do |r|
+    values.uniq.zip(other.values.uniq).each do |r|
       v = r[0] <=> r[1]
       return v unless v.zero?
     end
@@ -65,10 +74,14 @@ class Hand
   end
 
   def straight?
-    hand.length == 5 && values[0] - values[4] == 4
+    @straight
   end
 
   def flush?
     @flush
+  end
+
+  private
+  def sort(values)
   end
 end

@@ -12,18 +12,18 @@ HANDS = {
 }.freeze
 
 SCORES = {
-  two_pair: [2, 2, 1],
-  full_boat: [3, 2],
-  for_of_a_kind: [4, 1],
-  high_card: [1, 1, 1, 1, 1],
-  straight_flush: [1, 1, 1, 1, 1],
+  two_pair: [[2, 2, 1], [4, 2, 3]],
+  full_boat: [[3, 2], [4, 2]],
+  for_of_a_kind: [[4, 1], [2, 3]],
+  high_card: [[1, 1, 1, 1, 1], [12, 3, 2, 1, 0]],
+  straight_flush: [[1, 1, 1, 1, 1], [4, 3, 2, 1, 0]],
 }.freeze
 
 # rubocop:disable Metrics/BlockLength
-RSpec.describe Hand do
+RSpec.describe Poker::Hand do
   context '#initialize' do
-    subject { Hand.new(HANDS[:straight_flush]) }
-    let(:values) { subject.values.compact }
+    subject { Poker::Hand.new(HANDS[:straight_flush]) }
+    let(:values) { subject.values }
 
     it 'initializes the cards' do
       aggregate_failures do
@@ -38,28 +38,30 @@ RSpec.describe Hand do
 
   context '#straight?' do
     it 'should be true' do
-      expect(Hand.new(HANDS[:straight]).straight?).to be true
+      expect(Poker::Hand.new(HANDS[:straight]).straight?).to be true
     end
 
     it 'should be false' do
-      expect(Hand.new(HANDS[:pair]).straight?).to be false
+      expect(Poker::Hand.new(HANDS[:pair]).straight?).to be false
     end
   end
 
   context '#flush?' do
     it 'should be true' do
-      expect(Hand.new(HANDS[:straight_flush]).flush?).to be true
+      expect(Poker::Hand.new(HANDS[:straight_flush]).flush?).to be true
     end
 
     it 'should be false' do
-      expect(Hand.new(HANDS[:straight]).flush?).to be false
+      expect(Poker::Hand.new(HANDS[:straight]).flush?).to be false
     end
   end
 
   context '#hand' do
-    SCORES.each do |k, v|
+    SCORES.each do |k, (h, v)|
       it "should parse a #{k}" do
-        expect(Hand.new(HANDS[k]).hand).to eq(v)
+        hand = Poker::Hand.new(HANDS[k])
+        expect(hand.hand).to eq(h)
+        expect(hand.values).to eq(v)
       end
     end
   end
@@ -67,19 +69,19 @@ RSpec.describe Hand do
   context '#rank_by_card' do
     it 'should be -1' do
       expect(
-        Hand.new(HANDS[:high_card]).rank_by_cards(Hand.new(HANDS[:straight]))
+        Poker::Hand.new(HANDS[:high_card]).rank_by_cards(Poker::Hand.new(HANDS[:straight]))
       ).to eq(-1)
     end
 
     it 'should be 1' do
       expect(
-        Hand.new(HANDS[:straight]).rank_by_cards(Hand.new(HANDS[:high_card]))
+        Poker::Hand.new(HANDS[:straight]).rank_by_cards(Poker::Hand.new(HANDS[:high_card]))
       ).to eq(1)
     end
 
     it 'should be 0' do
       expect(
-        Hand.new(HANDS[:high_card]).rank_by_cards(Hand.new(HANDS[:high_card]))
+        Poker::Hand.new(HANDS[:high_card]).rank_by_cards(Poker::Hand.new(HANDS[:high_card]))
       ).to eq(0)
     end
   end
@@ -89,8 +91,8 @@ RSpec.describe Hand do
       winner = HANDS.keys[i + 1]
       looser = HANDS.keys[i]
       it "a #{winner} should beat a #{looser}" do
-        h1 = Hand.new(HANDS[winner])
-        h2 = Hand.new(HANDS[looser])
+        h1 = Poker::Hand.new(HANDS[winner])
+        h2 = Poker::Hand.new(HANDS[looser])
         aggregate_failures do
           expect(h1 <=> h2).to eq(1)
           expect(h1 > h2).to be true
@@ -101,8 +103,8 @@ RSpec.describe Hand do
     end
 
     it 'should return a draw' do
-      h1 = Hand.new(HANDS[:pair])
-      h2 = Hand.new(HANDS[:pair])
+      h1 = Poker::Hand.new(HANDS[:pair])
+      h2 = Poker::Hand.new(HANDS[:pair])
       aggregate_failures do
         expect(h1 <=> h2).to eq(0)
         expect(h1 == h2).to be true
