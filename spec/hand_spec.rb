@@ -23,30 +23,16 @@ SCORES = {
 RSpec.describe Hand do
   context '#initialize' do
     subject { Hand.new(HANDS[:straight_flush]) }
-    let(:ranks) { subject.cards.map(&:first).compact }
-    let(:suits) { subject.cards.map(&:last).compact }
+    let(:values) { subject.values.compact }
 
     it 'initializes the cards' do
       aggregate_failures do
-        expect(subject.cards).to be_an Array
-        expect(subject.cards[0]).to be_an Array
-        expect(subject.cards.length).to eq(5)
+        expect(values).to be_an Array
+        expect(values.length).to eq(5)
       end
     end
-
-    it 'should return 5 cards and suits' do
-      aggregate_failures do
-        expect(ranks.length).to eq(5)
-        expect(suits.length).to eq(5)
-      end
-    end
-
-    it 'should have sorted integer ranks' do
-      expect(ranks).to eq([4, 3, 2, 1, 0])
-    end
-
-    it 'should be all hearts' do
-      expect(suits.uniq).to eq(%w[H])
+    it 'should have sorted integer values' do
+      expect(values).to eq([4, 3, 2, 1, 0])
     end
   end
 

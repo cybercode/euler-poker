@@ -1,9 +1,9 @@
 class Hand
   FACE_VALUES = '23456789TJQKA'.freeze
   STRAIGHT = 'straight'.freeze
-  FLUSH = 'flush.freeze'
+  FLUSH = 'flush'.freeze
   STRAIGHT_FLUSH = 'straight flush'.freeze
-  
+
   RANKS = [
     [1, 1, 1, 1, 1],
     [2, 1, 1, 1],
@@ -14,25 +14,23 @@ class Hand
     [3, 2],
     [4, 1],
     STRAIGHT_FLUSH
-  ]
-  include Comparable
-  attr_reader :cards
-  attr_reader :score
-  attr_reader :hand
-  
-  def initialize(cards)
-    # Array of [[rank, suit], ...]
-    Debug.call(cards)
-    
-    @cards = cards.map { |c| c.split('') }.map do |face, suit|
-      [FACE_VALUES.index(face), suit]
-    end.sort do |a, b|
-      b[0] <=> a[0] # reverse sort
-    end
-    faces = @cards.map(&:first)
-    @hand = faces.uniq.map { |c| faces.count(c) }.sort.reverse
+  ].freeze
 
-    Debug.call("cards #{@cards}", "hand #{@hand}")
+  include Comparable
+  attr_reader :values
+  attr_reader :hand
+
+  def initialize(cards)
+    Debug.call(cards)
+
+    # Array of [[rank, suit], ...]
+    tmp = cards.map { |c| c.split('') }
+
+    @values = tmp.map { |v, _| FACE_VALUES.index(v) }.sort.reverse
+    @flush = tmp.map(&:last).uniq.length == 1
+    @hand = values.uniq.map { |c| values.count(c) }.sort.reverse
+
+    Debug.call("cards #{@values} #{@flush}", "hand #{@hand}")
   end
 
   def <=>(other)
@@ -57,7 +55,7 @@ class Hand
   end
 
   def rank_by_cards(other)
-    cards.map(&:first).zip(other.cards.map(&:first)).each do |r|
+    values.zip(other.values).each do |r|
       v = r[0] <=> r[1]
       return v unless v.zero?
     end
@@ -67,10 +65,10 @@ class Hand
   end
 
   def straight?
-    hand.length == 5 && cards[0][0] - cards[4][0] == 4
+    hand.length == 5 && values[0] - values[4] == 4
   end
 
   def flush?
-    cards.map(&:last).uniq.length == 1
+    @flush
   end
 end
